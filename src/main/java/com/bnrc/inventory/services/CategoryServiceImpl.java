@@ -98,6 +98,7 @@ public class CategoryServiceImpl implements ICategoryService {
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<CategoryResponseRest> update(Category category, Long id) {
 		CategoryResponseRest response = new CategoryResponseRest();
 		List<Category> list = new ArrayList<>();
@@ -127,6 +128,25 @@ public class CategoryServiceImpl implements ICategoryService {
 		 } catch(Exception e) {
 			 
 			 response.setMetadata("No hubo respuesta", "-1", "Error al actualizar la categoria");
+			 e.getStackTrace();
+			 return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		 }
+		 return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.OK);
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity<CategoryResponseRest> deleteById(Long id) {
+		
+		CategoryResponseRest response = new CategoryResponseRest();
+		 try {
+			 
+			 categoryDao.deleteById(id);
+			 response.setMetadata("Exitoso", "00", "Categoria eliminada exitosamente");
+			 
+		 } catch(Exception e) {
+			 
+			 response.setMetadata("No hubo respuesta", "-1", "Error al eliminarr");
 			 e.getStackTrace();
 			 return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		 }
