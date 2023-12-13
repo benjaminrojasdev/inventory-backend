@@ -189,6 +189,7 @@ public class ProductServiceImpl implements IProductService {
 
 
 	@Override
+	@Transactional (readOnly = true)
 	public ResponseEntity<ProductResponseRest> search() {
 		
 		ProductResponseRest response = new ProductResponseRest();
@@ -226,6 +227,63 @@ public class ProductServiceImpl implements IProductService {
 		}
 		
 		return new ResponseEntity<ProductResponseRest>(response,HttpStatus.OK);
+	}
+
+
+
+	@Override
+	@Transactional
+	public ResponseEntity<ProductResponseRest> update(Product product, Long categoryId, Long Id) {
+        
+		ProductResponseRest response = new ProductResponseRest();
+		List<Product> list = new ArrayList <>();
+		
+		
+		try {
+			
+			Optional<Category> category = categoryDao.findById(categoryId);
+			
+			if(category.isPresent()) {
+				product.setCategory(category.get());
+			} else {
+				response.setMetadata("Fallido", "303", "Categoria no encontrada asociada al producto");
+				return new ResponseEntity<ProductResponseRest>(response, HttpStatus.NOT_FOUND);
+			}
+			
+			
+			Optional <Product> productSearch = productDao.findById(Id);
+			
+			
+			if (productSearch.isPresent()) {
+				productSearch.get().setQuantity(product.getQuantity());
+				productSearch.get().setName(product.getName());
+				productSearch.get().setCategory(product.getCategory());
+				productSearch.get().setPrice(product.getPrice());
+				productSearch.get().setPicture(product.getPicture());
+				
+				Product productToUpdate = productDao.save(productSearch.get());
+				
+				if (productToUpdate != null) {
+					list.add(productToUpdate);
+					response.getProductResponse().setProducts(list);
+					response.setMetadata("Exitoso", "001", "Productos Actualizados");
+				}
+				
+			} else {
+				response.setMetadata("Fallido", "303", "No se pudo actualizar el producto");
+				return new ResponseEntity<ProductResponseRest>(response, HttpStatus.NOT_FOUND);
+			}
+			
+		} catch(Exception e) {
+			
+			e.getStackTrace();
+			response.setMetadata("Fallido", "303", "Error al actualizar producto");
+			return new ResponseEntity<ProductResponseRest>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			
+		}
+		
+		return new ResponseEntity<ProductResponseRest>(response, HttpStatus.OK);
+		
 	}
 
 }
